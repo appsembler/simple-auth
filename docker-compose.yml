@@ -1,0 +1,38 @@
+version: '2'
+
+services:
+  postgres:
+    image: postgres:9.5
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  web:
+    image: nginx:latest
+    ports:
+      - 80:80
+    volumes:
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./config/nginx/conf.d:/etc/nginx/conf.d
+    volumes_from:
+      - auth
+    depends_on:
+      - auth
+
+  auth:
+    build:
+      context: .
+      dockerfile: Dockerfile.onbuild
+    image: denibertovic/simple-auth:onbuild-latest
+    command: /bin/bash -c "cd /opt/simple_auth && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./simple_auth:/opt/simple_auth
+    depends_on:
+      - postgres
+    env_file: .env
+    stop_signal: SIGKILL
+    ports:
+      - 8000:8000
+
+volumes:
+  postgres-data: {}
+

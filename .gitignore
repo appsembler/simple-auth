@@ -1,0 +1,3 @@
+/simple_auth/static
+*.pyc
+.env
